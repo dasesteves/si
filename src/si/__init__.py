@@ -1,7 +1,7 @@
 __author__ = "Diogo Esteves"
 __credits__ = ["Diogo Esteves"]
 __license__ = "Apache License 2.0"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __maintainer__ = "Diogo Esteves"
 __email__ = "dasesteves@hotmail.com"
 
