@@ -21,7 +21,7 @@ class TestFClassification(TestCase):
 
         significant_different = []
         for p_value in p:
-            if p < 0.05:
+            if p_value < 0.05:  # Corrigido: use p_value em vez de p
                 significant_different.append(True)
             else: 
                 significant_different.append(False)
