@@ -3,7 +3,8 @@ from datasets import DATASETS_PATH
 
 import os
 from si.io.csv_file import read_csv
-from si.statistics import f_classification
+from si.statistics.f_classification import f_classification
+
 
 class TestFClassification(TestCase):
     def setUp(self):
