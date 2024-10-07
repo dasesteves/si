@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-def euclidean_distance:
-    x = np.array([1, 2, 3])
-    y = np.array([[4, 5, 6], [7, 8, 9]])
-    return np.sqrt(np.sum((x - y) ** 2, axis=1))
-=======
 import numpy as np
 
 
@@ -40,4 +34,3 @@ if __name__ == '__main__':
     sklearn_distance = euclidean_distances(x.reshape(1, -1), y)
     assert np.allclose(our_distance, sklearn_distance)
     print(our_distance, sklearn_distance)
->>>>>>> 1277ea0d469379272f7a89a41c1f53b396d113e1
