@@ -2,6 +2,8 @@ from abc import ABCMeta, ABC, abstractmethod
 
 from si.base.estimator import Estimator
 
+import numpy as np
+
 
 class Model(Estimator, ABC):
     """
@@ -15,7 +17,7 @@ class Model(Estimator, ABC):
         """
         super().__init__(**kwargs)
 
-    def predict(self, dataset):
+    def predict(self, dataset) -> np.ndarray:
         """
         Predict the target values of the dataset.
         The model needs to be fitted before calling this method.
@@ -35,7 +37,7 @@ class Model(Estimator, ABC):
         return self._predict(dataset)
 
     @abstractmethod
-    def _predict(self, dataset):
+    def _predict(self, dataset) -> np.ndarray:
         """
         Predict the target values of the dataset.
         Abstract method that needs to be implemented by all subclasses.

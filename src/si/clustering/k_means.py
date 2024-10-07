@@ -132,6 +132,22 @@ class KMeans(Transformer, Model):
         self.labels = labels
         return self
 
+    def _get_distances(self, sample: np.ndarray) -> np.ndarray:
+        """
+        It computes the distance between each sample and the closest centroid.
+
+        Parameters
+        ----------
+        sample : np.ndarray, shape=(n_features,)
+            A sample.
+
+        Returns
+        -------
+        np.ndarray
+            Distances between each sample and the closest centroid.
+        """
+        return self.distance(sample, self.centroids)
+
     def _transform(self, dataset: Dataset) -> np.ndarray:
         """
         It transforms the dataset.
@@ -147,7 +163,8 @@ class KMeans(Transformer, Model):
         np.ndarray
             Transformed dataset.
         """
-        pass
+        centroids_distances = np.apply_along_axis(self._get_distances, axis=1, arr=dataset.X)
+        return centroids_distances
 
     def _predict(self, dataset: Dataset) -> np.ndarray:
         """
@@ -163,7 +180,7 @@ class KMeans(Transformer, Model):
         np.ndarray
             Predicted labels.
         """
-        pass
+        return np.apply_along_axis(self._get_closest_centroid, axis=1, arr=dataset.X)
 
 
 if __name__ == '__main__':
