@@ -197,6 +197,61 @@ class Dataset:
         X = np.random.rand(n_samples, n_features)
         y = np.random.randint(0, n_classes, n_samples)
         return cls(X, y, features=features, label=label)
+    
+    def dropna(self):
+        """
+        Removes all samples (rows) in the dataset containing at least one null value (NaN) using only NumPy functions.
+        Returns:
+            The updated Dataset object with rows containing null values removed.
+        """
+        mask = np.any(np.isnan(self.X), axis=1)
+        self.X = self.X[~mask]
+        self.y = self.y[~mask]
+
+        return self
+
+    def fillna(self,value:float|str):
+        """
+        Fills missing values (NaNs) in the dataset with a specified value or statistic.
+        Parameters
+        ----------
+        value (float|str): The value or statistic to fill NaNs with.
+            - If a float or integer, fills all NaNs with that value.
+            - If "MEAN", fills NaNs with the column-wise mean.
+            - If "MEDIAN", fills NaNs with the column-wise median.
+        Returns
+        ----------
+        The updated Dataset object with missing values filled.
+        """
+            
+        if isinstance(value, float | int):
+            self.X[np.where(np.isnan(self.X))] = value
+        else:
+            func_map = {"MEAN": self.get_mean, "MEDIAN": self.get_median} # By using a dictionary and a single loop to handle "MEAN" and "MEDIAN" cases to map string values to their corresponding functions, the code becomes more concise and easier to extend if additional statistics are needed in the future.
+            if isinstance(value, str) and value.upper() in func_map:
+                row_idx, col_idx = np.where(np.isnan(self.X))
+                fill_values = func_map[value.upper()]()
+                for row, col in zip(row_idx, col_idx):
+                    self.X[row, col] = fill_values[col]
+
+        return self
+
+
+    def remove_by_index(self,index:int):
+        """
+        Remove a samplpe by it's
+        Parameters
+        ----------
+        index: int
+            The sample to remove. The index start on the sample 0 
+        
+        Returns:
+        -----------
+        The updated Dataset object with the specified sample removed.
+        """
+        self.X = np.delete(self.X, index, 0)
+        self.y = np.delete(self.y, index)
+        return self
 
 
 if __name__ == '__main__':
@@ -214,3 +269,7 @@ if __name__ == '__main__':
     print(dataset.get_min())
     print(dataset.get_max())
     print(dataset.summary())
+    print(dataset.X)
+    print(dataset.y)
+
+
