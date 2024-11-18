@@ -239,7 +239,7 @@ class Dataset:
 
     def remove_by_index(self,index:int):
         """
-        Remove a samplpe by it's
+        Remove a sample by it's
         Parameters
         ----------
         index: int
