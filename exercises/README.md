@@ -11,10 +11,10 @@ For example, the exercise solution for 'Add a method to the Dataset class that r
 | Exercício 1 | Concluído  |
 | Exercício 2 | Concluído  |
 | Exercício 3 | Concluído  |
-| Exercício 4 | Pendente   |
-| Exercício 5 | Pendente   |
-| Exercício 6 | Pendente   |
-| Exercício 7 | Pendente   |
+| Exercício 4 | Concluído   |
+| Exercício 5 | Concluído   |
+| Exercício 6 | Concluído   |
+| Exercício 7 | Concluído   |
 | Exercício 8 | Pendente   |
 | Exercício 9 | Pendente   |
 | Exercício 10 | Pendente  |
@@ -24,6 +24,5 @@ For example, the exercise solution for 'Add a method to the Dataset class that r
 | Exercício 14 | Pendente  |
 | Exercício 15 | Pendente  |
 | Exercício 16 | Pendente  |
-| Exercício 17 | Pendente  |
-| ... | ...  |
+
 
