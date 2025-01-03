@@ -41,3 +41,46 @@ def train_test_split(dataset: Dataset, test_size: float = 0.2, random_state: int
     train = Dataset(dataset.X[train_idxs], dataset.y[train_idxs], features=dataset.features, label=dataset.label)
     test = Dataset(dataset.X[test_idxs], dataset.y[test_idxs], features=dataset.features, label=dataset.label)
     return train, test
+
+
+def stratified_train_test_split(dataset: Dataset, test_size: float = 0.2, random_state: int = None) -> Tuple[Dataset, Dataset]:
+    """
+    Split dataset into train and test sets while preserving class proportions.
+
+    Parameters
+    ----------
+    dataset: Dataset
+        The dataset to split
+    test_size: float
+        The proportion of the dataset to include in the test split
+    random_state: int
+        The seed of the random number generator
+
+    Returns
+    -------
+    train: Dataset
+        The training dataset
+    test: Dataset
+        The testing dataset
+    """
+    if random_state is not None:
+        np.random.seed(random_state)
+        
+    unique_labels = np.unique(dataset.y)
+    train_idx = []
+    test_idx = []
+    
+    for label in unique_labels:
+        label_idx = np.where(dataset.y == label)[0]
+        np.random.shuffle(label_idx)
+        
+        n_test = int(len(label_idx) * test_size)
+        test_idx.extend(label_idx[:n_test])
+        train_idx.extend(label_idx[n_test:])
+    
+    train = Dataset(dataset.X[train_idx], dataset.y[train_idx], 
+                   features=dataset.features, label=dataset.label)
+    test = Dataset(dataset.X[test_idx], dataset.y[test_idx], 
+                  features=dataset.features, label=dataset.label)
+    
+    return train, test
