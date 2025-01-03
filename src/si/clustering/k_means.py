@@ -183,7 +183,29 @@ class KMeans(Transformer, Model):
         return np.apply_along_axis(self._get_closest_centroid, axis=1, arr=dataset.X)
     
     def _score(self, dataset, predictions):
-        pass
+        """
+        Calcula o score do clustering usando a soma das distâncias quadráticas
+        intra-cluster (inertia).
+
+        Parameters
+        ----------
+        dataset: Dataset
+            Dataset object.
+        predictions: np.ndarray
+            Predicted labels.
+
+        Returns
+        -------
+        float
+            Inertia score (menor é melhor).
+        """
+        inertia = 0.0
+        for i in range(self.k):
+            mask = predictions == i
+            if np.any(mask):
+                cluster_points = dataset.X[mask]
+                inertia += np.sum((cluster_points - self.centroids[i]) ** 2)
+        return inertia
 
 
 if __name__ == '__main__':

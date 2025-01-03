@@ -20,6 +20,9 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     np.ndarray
         Euclidean distance for each point in y.
     """
+    if x.shape[-1] != y.shape[-1]:
+        raise ValueError(f"Última dimensão dos arrays deve ser igual. Obtido: {x.shape[-1]} != {y.shape[-1]}")
+    
     return np.sqrt(((x - y) ** 2).sum(axis=1))
 
 
