@@ -94,6 +94,7 @@ class RidgeRegression(Model):
 
         i = 0
         early_stopping = 0
+        
         # gradient descent
         while i < self.max_iter and early_stopping < self.patience:
             # predicted y

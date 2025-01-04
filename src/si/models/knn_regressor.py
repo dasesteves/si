@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union
 
 import numpy as np
 
@@ -11,8 +11,9 @@ from si.statistics.euclidean_distance import euclidean_distance
 class KNNRegressor(Model):
     """
     KNN Regressor
-    The k-Nearest Neighbors regressor predicts continuous values based on the mean
-    of the k nearest neighbors in the training data.
+    This regression method is a non-parametric machine learning method suitable for regression problems.
+    It classifies new sample based on a similarity measure, predicting the class of the new sample by looking at the values of the k-nearest samples in the training data.
+    The k-Nearest Neighbors regressor predicts continuous values based on the mean of the k nearest neighbors in the training data.
 
     Parameters
     ----------
@@ -26,15 +27,25 @@ class KNNRegressor(Model):
     dataset: Dataset
         The training dataset
     """
-    def __init__(self, k: int = 3, distance: Callable = euclidean_distance):
-        super().__init__()
+    def __init__(self, k: int = 1, distance: Callable = euclidean_distance, **kwargs):
+        """
+        Initialize the KNN classifier
+        Parameters
+        ----------
+        k: int
+            The number of k nearest example to consider
+        distance: Callable
+            Function that calculates the distance between a sample and the samples
+            in the training dataset
+        """        
+        super().__init__(**kwargs)
         self.k = k
         self.distance = distance
         self.dataset = None
 
     def _fit(self, dataset: Dataset) -> 'KNNRegressor':
         """
-        Stores the training dataset.
+        Stores the training dataset. Fits the model to the given dataset
 
         Parameters
         ----------
@@ -49,58 +60,64 @@ class KNNRegressor(Model):
         self.dataset = dataset
         return self
 
+    def _get_closest_value(self, sample: np.ndarray) -> Union[int, float]:
+        """
+        It returns the closest label of the given sample
+        Parameters
+        ----------
+        sample: np.ndarray
+            The sample to get the closest value of
+        Returns
+        -------
+        value: int or float
+            The closest value
+        """
+
+        # compute the distance between the sample and the training dataset
+        distances = self.distance(sample, self.dataset.X)
+
+        # get the k nearest neighbors
+        k_nearest_neighbors = np.argsort(distances)[:self.k]
+
+        # get the values of the k nearest neighbors
+        k_nearest_neighbors_label_values = self.dataset.y[k_nearest_neighbors]
+
+        # get the average value of the k nearest neighbors
+        value = np.sum(k_nearest_neighbors_label_values) / self.k
+
+        return value
+
     def _predict(self, dataset: Dataset) -> np.ndarray:
         """
-        Predicts target values for dataset.
-
+        Predict Label Values for a Dataset
+        Generates predictions for the label values of the provided testing dataset.
         Parameters
         ----------
-        dataset: Dataset
-            The dataset to predict
-
-        Returns
-        -------
-        predictions: np.ndarray
-            The predicted values
+        dataset : Dataset
+            The dataset for which label values are to be predicted.
+        Returns:
+        -----------
+        predictions : np.ndarray
+            An array containing the predicted label values for the testing dataset.
         """
-        predictions = np.zeros(dataset.shape()[0])
-        
-        for i, sample in enumerate(dataset.X):
-            distances = self.distance(sample, self.dataset.X)
-            k_nearest_indices = np.argsort(distances)[:self.k]
-            predictions[i] = np.mean(self.dataset.y[k_nearest_indices])
-            
+        # compute the predictions for each row(sample) of the testing dataset
+        predictions = np.apply_along_axis(self._get_closest_value, axis=1, arr=dataset.X)
         return predictions
 
-    def _score(self, dataset: Dataset, predictions: np.ndarray) -> float:
+    def _score(self, dataset: Dataset, predictions:np.ndarray) -> float:
         """
-        Returns the RMSE score for the predictions.
+        It calculates the root mean square error (RMSE) between the actual and predicted values
 
         Parameters
         ----------
         dataset: Dataset
-            The dataset to evaluate
+            The dataset containing the actual values (testing dataset)
         predictions: np.ndarray
-            The predicted values
+            The predicted values for the testing dataset
 
         Returns
         -------
-        rmse: float
+        score: float
             The RMSE score
         """
-        return rmse(dataset.y, predictions)
-
-
-if __name__ == '__main__':
-    from si.data.dataset import Dataset
-    from si.model_selection.split import train_test_split
-
-    # Load and split dataset
-    dataset = Dataset.from_random(600, 100, 2)
-    train_dataset, test_dataset = train_test_split(dataset, test_size=0.2)
-
-    # Train and evaluate model
-    knn = KNNRegressor(k=3)
-    knn.fit(train_dataset)
-    score = knn.score(test_dataset)
-    print(f'The RMSE score is: {score}')
+        return rmse(dataset.y,predictions)

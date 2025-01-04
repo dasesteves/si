@@ -2,45 +2,36 @@ import numpy as np
 
 def cosine_distance(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """
-    Calculates the cosine distance between a sample x and multiple samples y.
-    
-    The cosine distance is calculated as: 1 - cosine_similarity
-    where cosine_similarity = (x·y)/(||x|| ||y||)
+    Computes the cosine distance between a single sample and multiple samples.
 
-    Parameters
+    The cosine distance is calculated as:
+        distance = 1 - cosine_similarity,
+    where cosine_similarity measures the cosine of the angle between two vectors
+    and ranges from -1 (opposite direction) to 1 (same direction).
+
+    Parameters:
     ----------
     x : np.ndarray
-        A single sample (vector)
+        A single sample represented as a 1D array.
     y : np.ndarray
-        Multiple samples (matrix)
+        Multiple samples represented as a 2D array, where each row is a sample.
 
-    Returns
+    Returns:
     -------
-    np.ndarray
-        Array with cosine distances between x and each sample in y
-
-    Raises
-    ------
-    ValueError
-        If vector dimensions are not compatible
+    distances : np.ndarray
+        A 1D array containing the cosine distances between the single sample `x`
+        and each sample in `y`.
     """
-    if x.shape[-1] != y.shape[-1]:
-        raise ValueError(f"Last dimension of arrays must be equal. Got: {x.shape[-1]} != {y.shape[-1]}")
-
-    # Vector normalization
-    x_norm = np.linalg.norm(x)
-    y_norm = np.linalg.norm(y, axis=1)
+    # Compute the dot product between x and each row in y
+    dot_product = np.dot(x, y.T)
     
-    # Avoid division by zero
-    mask = (x_norm != 0) & (y_norm != 0)
+    # Compute the norm of x and each row in y
+    norm_x = np.linalg.norm(x)
+    norm_y = np.linalg.norm(y, axis=1)
     
     # Calculate cosine similarity
-    similarity = np.zeros(len(y))
-    if np.any(mask):
-        dot_product = np.dot(y[mask], x)
-        similarity[mask] = dot_product / (x_norm * y_norm[mask])
-    
-    # Convert similarity to distance
+    similarity = dot_product / (norm_x * norm_y)
     distance = 1 - similarity
     
+    # Return cosine distance
     return distance
