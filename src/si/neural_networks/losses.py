@@ -131,3 +131,59 @@ class BinaryCrossEntropy(LossFunction):
         # Avoid division by zero
         p = np.clip(y_pred, 1e-15, 1 - 1e-15)
         return - (y_true / p) + (1 - y_true) / (1 - p)
+
+class CategoricalCrossEntropy(LossFunction):
+    """
+    Categorical cross-entropy loss function that is applied to
+    multi-class classification problems. It measures the dissimilarity 
+    between predicted class probabilities and true  one-hot encoded class labels.
+    """
+    def loss(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        """
+        Compute the categorical cross-entropy loss.
+
+        Parameters
+        ----------
+        y_true : numpy.ndarray
+            True labels (one-hot encoded).
+        y_pred : numpy.ndarray
+            Predicted labels.
+
+        Returns
+        -------
+        float
+            The categorical cross-entropy loss.
+        """
+        # Clip predictions to avoid log(0)
+        y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
+        
+        #Divide the total loss by the number of examples in the batch (y_true.shape[0]) to calculate the average loss per example. This ensures the loss is normalized and independent of the batch size, allowing for consistent comparison across batches.
+        loss = -np.sum(y_true * np.log(y_pred)) / y_true.shape[0]
+        
+        return loss
+
+    def derivative(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        """
+        Compute the derivative of the Categorical cross-entropy loss.
+        The derivative represents the gradient of the loss function with
+        respect to the predicted probabilities (y_pred).
+        This gradient is used during backpropagation to update the model's weights.
+
+        Parameters
+        ----------
+        y_true : numpy.ndarray
+            True labels (one-hot encoded).
+        y_pred : numpy.ndarray
+            Predicted labels.
+
+        Returns
+        -------
+        numpy.ndarray
+            The derivative of the loss function.
+        """
+        # Clip predictions to avoid division by 0
+        y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
+        
+        gradient = -y_true / y_pred
+        
+        return gradient

@@ -1,111 +1,120 @@
+from typing import Callable, Tuple, Dict, Any
+
 import numpy as np
-from si.base.model import Model
+
 from si.data.dataset import Dataset
-import itertools
+
 from si.model_selection.cross_validate import k_fold_cross_validation
 
-
-def randomized_search_cv(model:Model,dataset:Dataset,hyperparameter_grid:dict,cv:int,n_iter:int,scoring:callable = None)->dict:
+def randomized_search_cv(model, dataset: Dataset, hyperparameter_grid: Dict[str, Tuple], scoring: Callable = None, cv: int = 5, n_iter: int = None) -> Dict[str, Any]:
     """
-    Performs Randomized Hyperparameter Search
+    Performs a randomized search cross validation on a model.
 
-    Randomized hyperparameter search is an optimization technique that randomly samples
-    combinations of hyperparameter values from a defined search space. This method is
-    particularly advantageous for high-dimensional or large parameter spaces.
-
-    Key Benefits:
-    - **Efficiency**: Samples a wide range of hyperparameter values without exhaustively
-    searching every combination.
-    - **Flexibility**: Supports both continuous and discrete hyperparameter spaces.
-    - **High-Dimensional Effectiveness**: Performs well with models involving numerous hyperparameters.
-
-    Parameters:
+    Parameters
     ----------
-    model : Model
-        The machine learning model to optimize.
-    dataset : Dataset
-        The dataset used for validation during hyperparameter tuning.
-    hyperparameter_grid : dict
-        A dictionary specifying hyperparameter names and their respective search ranges.
-    scoring : callable
-        A function to evaluate model performance during tuning.
-    cv : int
-        The number of cross-validation folds.
-    n_iter : int
-        The number of random hyperparameter combinations to evaluate.
+    model
+        The model to cross validate.
+    dataset: Dataset
+        The dataset to cross validate on.
+    hyperparameter_grid: Dict[str, Tuple]
+        The hyperparameter grid to use.
+    scoring: Callable
+        The scoring function to use.
+    cv: int
+        The cross validation folds.
+    n_iter: int
+        Number of hyperparameter random combinations to test.
 
-    Returns:
-    ----------
-    results : dict
-        A dictionary containing:
-            - 'scores': Evaluation scores for each hyperparameter combination.
-            - 'hyperparameters': The tested hyperparameter combinations.
-            - 'best_hyperparameters': The hyperparameter combination yielding the best score.
-            - 'best_score': The highest score achieved.
+    Returns
+    -------
+    results: Dict[str, Any]
+        The results of the grid search cross validation. Includes the scores, hyperparameters,
+        best hyperparameters and best score.
     """
-
-
-    # check if the hyperparameter are present in the model
+    # validate the parameter grid
     for parameter in hyperparameter_grid:
         if not hasattr(model, parameter):
             raise AttributeError(f"Model {model} does not have parameter {parameter}.")
 
-    # select n_iter random combinations from all combinations possible for the hyperparameters
-    combinations = random_combinations(hyperparameter_grid = hyperparameter_grid, n_iter=n_iter)
+    param_names = list(hyperparameter_grid.keys())
+    
+    # Get random combinations
+    all_combinations = []
+    for _ in range(n_iter):
+        combination = {}
+        for param_name in param_names:
+            param_values = hyperparameter_grid[param_name]
+            random_value = np.random.choice(param_values)
+            combination[param_name] = random_value
+        all_combinations.append(combination)
 
-    # initializing the results dictionary
-    results = {'scores': [], 'hyperparameters': []}
+    # Lists to store results
+    all_scores = []
+    
+    # Evaluate each combination
+    for params in all_combinations:
+        # Set model parameters
+        for param_name, param_value in params.items():
+            setattr(model, param_name, param_value)
+        
+        # Perform k-fold cross-validation
+        fold_scores = k_fold_cross_validation(model, dataset, scoring, cv)
+        
+        # Calculate and store mean score
+        mean_score = np.mean(fold_scores)
+        all_scores.append(mean_score)
+    
+    # Find best score and parameters
+    best_idx = np.argmax(all_scores)
+    best_score = all_scores[best_idx]
+    best_hyperparameters = all_combinations[best_idx]
+    
+    # Return results dictionary
+    return {
+        'hyperparameters': all_combinations,
+        'scores': all_scores,
+        'best_hyperparameters': best_hyperparameters,
+        'best_score': best_score
+    }
 
-    for combination in combinations:
+if __name__ == '__main__':
+    # Import dataset
+    from si.data.dataset import Dataset
+    from si.models.logistic_regression import LogisticRegression
+    from si.model_selection.split import train_test_split
+    from si.io.csv_file import read_csv
 
-        # parameter configuration
-        parameters = {}
+    # Load the dataset
+    data = read_csv('datasets/breast_bin/breast-bin.csv', sep=',', features=True, label=True) 
 
-        # set the parameters
-        for parameter, value in zip(hyperparameter_grid.keys(), combination):
-            setattr(model, parameter, value)
-            parameters[parameter] = value
+    # Split the dataset into training and testing sets
+    train, test = train_test_split(data, test_size=0.33, random_state=42)
 
-        # cross validate the model
-        score = k_fold_cross_validation(model=model, dataset=dataset, scoring=scoring, cv=cv)
+    # Initialize the Logistic Regression model
+    lr = LogisticRegression()
 
-        # add the score
-        results['scores'].append(np.mean(score))
+    # Parameter grid
+    parameter_grid_ = {
+        'l2_penalty': np.linspace(1, 10, 10),
+        'alpha': np.linspace(0.001, 0.0001, 100),
+        'max_iter': np.linspace(1000, 2000, 200)
+    }
 
-        # add the hyperparameters
-        results['hyperparameters'].append(parameters)
+    # Cross validate the model
+    results_ = randomized_search_cv(model=lr,
+                                    dataset=data,
+                                    hyperparameter_grid=parameter_grid_,
+                                    cv=3,
+                                    n_iter=10)
 
-    results['best_hyperparameters'] = results['hyperparameters'][np.argmax(results['scores'])]
-    results['best_score'] = np.max(results['scores'])
-    return results
-
-
-def random_combinations(hyperparameter_grid:dict,n_iter:int)->list:
-    """
-    Selects Random Hyperparameter Combinations
-
-    Randomly selects a specified number of hyperparameter combinations from all
-    possible combinations defined in the hyperparameter grid.
-
-    Parameters:
-    -----------
-    hyperparameter_grid : dict
-        A dictionary where keys are hyperparameter names and values are lists or ranges
-        of possible values for each hyperparameter.
-    n_iter : int
-        The number of hyperparameter combinations to randomly select.
-
-    Returns:
-    -----------
-    random_combinations : list
-        A list containing the randomly selected combinations of hyperparameters.
-    """
-
-    # computing all combinations of hyperparameters possible
-    all_combinations = list(itertools.product(*hyperparameter_grid.values()))
-    # select random indices form all combinations
-    random_indices = np.random.choice(len(all_combinations),n_iter, replace=False)
-    # select the random combinations from all combinations
-    random_combinations = [all_combinations[idx] for idx in random_indices]
-
-    return random_combinations
+    # hyperparameters
+    hyperparameters = results_['hyperparameters']
+    print(f"Hyperparameters: {hyperparameters}") 
+    best_hyperparameters = results_['best_hyperparameters']
+    print(f"Best hyperparameters: {best_hyperparameters}") 
+    
+    # scores
+    scores = results_['scores']
+    print(f"Scores: {scores}")
+    best_score = results_['best_score']
+    print(f"Best score: {best_score}")

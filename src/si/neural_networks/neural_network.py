@@ -16,7 +16,7 @@ class NeuralNetwork(Model):
     """
 
     def __init__(self, epochs: int = 100, batch_size: int = 128, optimizer: Optimizer = SGD,
-                 learning_rate: float = 0.01, verbose: bool = False, loss: LossFunction = MeanSquaredError,
+                learning_rate: float = 0.01, verbose: bool = False, loss: LossFunction = MeanSquaredError,
                  metric: callable = mse, **kwargs):
         """
         Initialize the neural network.
@@ -74,7 +74,7 @@ class NeuralNetwork(Model):
         return self
 
     def _get_mini_batches(self, X: np.ndarray, y: np.ndarray = None,
-                          shuffle: bool = True) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
+                        shuffle: bool = True) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
         """
         Generate mini-batches for the given data.
 

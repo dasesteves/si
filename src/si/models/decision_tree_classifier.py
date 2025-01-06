@@ -14,7 +14,7 @@ class Node:
     """
 
     def __init__(self, feature_idx: int = None, threshold: float = None, left: 'Node' = None, right: 'Node' = None,
-                 info_gain: float = None, value: Union[float, str] = None) -> None:
+                info_gain: float = None, value: Union[float, str] = None) -> None:
         """
         Creates a Node object.
 
@@ -161,7 +161,7 @@ class DecisionTreeClassifier(Model):
         left_data = Dataset(dataset.X[left_indices], dataset.y[left_indices], features=dataset.features,
                             label=dataset.label)
         right_data = Dataset(dataset.X[right_indices], dataset.y[right_indices], features=dataset.features,
-                             label=dataset.label)
+                            label=dataset.label)
         return left_data, right_data
 
     def _information_gain(self, parent: np.ndarray, left_child: np.ndarray, right_child: np.ndarray) -> float:

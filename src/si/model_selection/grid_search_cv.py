@@ -8,10 +8,10 @@ from si.model_selection.cross_validate import k_fold_cross_validation
 
 
 def grid_search_cv(model,
-                   dataset: Dataset,
-                   hyperparameter_grid: Dict[str, Tuple],
-                   scoring: Callable = None,
-                   cv: int = 5) -> Dict[str, Any]:
+                    dataset: Dataset,
+                    hyperparameter_grid: Dict[str, Tuple],
+                    scoring: Callable = None,
+                    cv: int = 5) -> Dict[str, Any]:
     """
     Performs a grid search cross validation on a model.
 
@@ -86,9 +86,9 @@ if __name__ == '__main__':
 
     # cross validate the model
     results_ = grid_search_cv(knn,
-                              dataset_,
-                              hyperparameter_grid=parameter_grid_,
-                              cv=3)
+                            dataset_,
+                            hyperparameter_grid=parameter_grid_,
+                            cv=3)
 
     # print the results
     print(results_)

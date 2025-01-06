@@ -113,10 +113,10 @@ class RandomForestClassifier(Model):
             )
             tree_predictions.append(tree.predict(subset_dataset))
 
-        # Aggregate predictions across trees
+        # Aggregate predictions across trees. creates a 2D array of the predictions. Rows are the samples and columns are the predictions for each tree in the forest
         predictions = np.array(tree_predictions).T
 
-        # Determine the most frequent prediction for each sample
+        # Determine the most frequent prediction for each sample (each row)
         final_predictions = np.apply_along_axis(
             lambda row: np.bincount(row).argmax(),
             axis=1,
