@@ -1,5 +1,14 @@
 # Intelligent Systems for Bioinformatics
 
+## Conteúdo deste fork
+
+Este fork reúne código e materiais da unidade curricular de Sistemas Inteligentes
+para Bioinformática. A origem do projeto e os créditos estão preservados abaixo.
+
+- [Implementação dos algoritmos](src/si/).
+- [Exercícios](exercises/) e [exemplos em notebooks](scripts/).
+- [Testes unitários existentes](tests/unit_tests/).
+
 ## Curricular Unit
 Master in Bioinformatics, University of Minho, 2024-2025.
 
