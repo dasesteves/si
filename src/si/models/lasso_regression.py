@@ -12,7 +12,7 @@ class LassoRegression(Model):
     Parameters:
     ----------
     l1_penalty : float, default=1
-        The L1 regularization parameter.
+        The L1 penalty in mean squared error / 2 + l1_penalty * sum(abs(theta)).
     max_iter : int, default=1000
         Maximum number of iterations for gradient descent.
     patience : int, default=5
@@ -53,11 +53,13 @@ class LassoRegression(Model):
         if self.scale:
             self.mean = np.nanmean(X, axis=0)
             self.std = np.nanstd(X, axis=0)
+            self.std = np.where(self.std == 0, 1., self.std)
             X = (X - self.mean) / self.std
 
         m, n = dataset.shape()
         self.theta = np.zeros(n)
         self.theta_zero = 0
+        squared_norms = np.sum(X ** 2, axis=0)
 
         early_stopping = 0
         for i in range(self.max_iter):
@@ -68,8 +70,11 @@ class LassoRegression(Model):
 
             # Update coefficients using soft-thresholding
             for feature in range(n):
-                residual = np.dot(X[:, feature], dataset.y - y_pred + X[:, feature] * self.theta[feature])
-                self.theta[feature] = self.soft_threshold(residual, self.l1_penalty) / np.sum(X[:, feature] ** 2)
+                previous = self.theta[feature]
+                residual = np.dot(X[:, feature], dataset.y - y_pred + X[:, feature] * previous)
+                norm = squared_norms[feature]
+                self.theta[feature] = self.soft_threshold(residual, m * self.l1_penalty) / norm if norm else 0.
+                y_pred += X[:, feature] * (self.theta[feature] - previous)
 
             # Update intercept
             self.theta_zero = np.mean(dataset.y - np.dot(X, self.theta))
