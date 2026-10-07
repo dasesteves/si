@@ -1,7 +1,7 @@
 import numpy as np
 from si.base.transformer import Transformer
 from si.data.dataset import Dataset
-from si.statistics import f_classification
+from si.statistics.f_classification import f_classification
 
 
 class SelectPercentile(Transformer):

@@ -149,7 +149,7 @@ class Dataset:
             X = df.to_numpy()
             y = None
 
-        features = df.columns.tolist()
+        features = df.drop(label, axis=1).columns.tolist() if label else df.columns.tolist()
         return cls(X, y, features=features, label=label)
 
     def to_dataframe(self) -> pd.DataFrame:
