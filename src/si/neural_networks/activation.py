@@ -247,16 +247,25 @@ class SoftmaxActivation(ActivationLayer):
     
     def derivative(self, input: np.ndarray):
         """
-        Derivative of the Softmax activation function.
+        Return the full Softmax Jacobian for each sample.
 
         Parameters
         ----------
-        input: numpy.ndarray
+        input: numpy.ndarray (n_samples, n_classes)
             The input to the layer.
 
         Returns
         -------
-        numpy.ndarray
-            The derivative of the activation function.
+        numpy.ndarray (n_samples, n_classes, n_classes)
+            Entry [sample, output, input] is the derivative of one output
+            probability with respect to one input logit. Off-diagonal terms
+            express the dependence between classes.
         """
-        return self.activation_function(input)*(1-self.activation_function(input))
+        probabilities = self.activation_function(input)
+        identity = np.eye(probabilities.shape[1])
+        return probabilities[:, :, None] * (identity - probabilities[:, None, :])
+
+    def backward_propagation(self, output_error: np.ndarray) -> np.ndarray:
+        """Apply the Softmax Jacobian without materializing it for each sample."""
+        weighted_error = np.sum(output_error * self.output, axis=1, keepdims=True)
+        return self.output * (output_error - weighted_error)
