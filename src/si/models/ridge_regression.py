@@ -170,7 +170,8 @@ class RidgeRegression(Model):
         cost: float
             The cost function of the model
         """
-        y_pred = self.predict(dataset)
+        # Training evaluates cost before Estimator.fit marks the model as fitted.
+        y_pred = self._predict(dataset)
         return (np.sum((y_pred - dataset.y) ** 2) + (self.l2_penalty * np.sum(self.theta ** 2))) / (2 * len(dataset.y))
 
 

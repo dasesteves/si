@@ -103,7 +103,8 @@ class LassoRegression(Model):
         cost : float
             The computed cost value.
         """
-        y_pred = self.predict(dataset)
+        # Training evaluates cost before Estimator.fit marks the model as fitted.
+        y_pred = self._predict(dataset)
         mse_cost = np.mean((dataset.y - y_pred) ** 2) / 2
         l1_cost = self.l1_penalty * np.sum(np.abs(self.theta))
         return mse_cost + l1_cost
