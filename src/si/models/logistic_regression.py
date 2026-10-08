@@ -74,10 +74,12 @@ class LogisticRegression(Model):
         self: LogisticRegression
             The fitted model
         """
+        self.cost_history = {}
         if self.scale:
             # compute mean and std
             self.mean = np.nanmean(dataset.X, axis=0)
             self.std = np.nanstd(dataset.X, axis=0)
+            self.std = np.where(self.std == 0, 1., self.std)
             # scale the dataset
             X = (dataset.X - self.mean) / self.std
         else:
