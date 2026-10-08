@@ -1,56 +1,30 @@
 from unittest import TestCase
+import numpy as np
 
-from datasets import DATASETS_PATH
-
-import os
-
-from si.io.data_file import read_data_file
-from si.model_selection.split import train_test_split
 from si.neural_networks.activation import ReLUActivation, SigmoidActivation
 
+
 class TestSigmoidLayer(TestCase):
-
     def setUp(self):
-        
-        self.csv_file = os.path.join(DATASETS_PATH, 'breast_bin', 'breast-bin.csv')
-
-        self.dataset = read_data_file(filename=self.csv_file, label=True, sep=",")
-
-        self.train_dataset, self.test_dataset = train_test_split(self.dataset)
+        self.X = np.array([[-np.log(3), 0., np.log(3)], [np.log(3), 0., -np.log(3)]])
 
     def test_activation_function(self):
-
-        sigmoid_layer = SigmoidActivation()
-        result = sigmoid_layer.activation_function(self.dataset.X)
-        self.assertTrue(all([i >= 0 and i <= 1 for j in range(result.shape[1]) for i in result[:, j]]))
-
+        np.testing.assert_allclose(SigmoidActivation().activation_function(self.X),
+                                   [[.25, .5, .75], [.75, .5, .25]])
 
     def test_derivative(self):
-        sigmoid_layer = SigmoidActivation()
-        derivative = sigmoid_layer.derivative(self.dataset.X)
-        self.assertEqual(derivative.shape[0], self.dataset.X.shape[0])
-        self.assertEqual(derivative.shape[1], self.dataset.X.shape[1])
+        np.testing.assert_allclose(SigmoidActivation().derivative(self.X),
+                                   [[.1875, .25, .1875], [.1875, .25, .1875]])
 
 
 class TestRELULayer(TestCase):
-
-    def setUp(self):
-        
-        self.csv_file = os.path.join(DATASETS_PATH, 'breast_bin', 'breast-bin.csv')
-
-        self.dataset = read_data_file(filename=self.csv_file, label=True, sep=",")
-
-        self.train_dataset, self.test_dataset = train_test_split(self.dataset)
-
     def test_activation_function(self):
-
-        relu_layer = ReLUActivation()
-        result = relu_layer.activation_function(self.dataset.X)
-        self.assertTrue(all([i >= 0 for j in range(result.shape[1]) for i in result[:, j]]))
-
+        X = np.array([[-2., 0., 3.], [4., -5., -1.]])
+        np.testing.assert_array_equal(ReLUActivation().activation_function(X),
+                                      [[0., 0., 3.], [4., 0., 0.]])
 
     def test_derivative(self):
-        sigmoid_layer = ReLUActivation()
-        derivative = sigmoid_layer.derivative(self.dataset.X)
-        self.assertEqual(derivative.shape[0], self.dataset.X.shape[0])
-        self.assertEqual(derivative.shape[1], self.dataset.X.shape[1])
+        # Avoid zero, where ReLU has no unique mathematical derivative.
+        X = np.array([[-2., -1., 3.], [4., -5., -1.]])
+        np.testing.assert_array_equal(ReLUActivation().derivative(X),
+                                      [[0., 0., 1.], [1., 0., 0.]])
