@@ -8,7 +8,9 @@ class SelectPercentile(Transformer):
     """
     Selects features based on a specified percentile of a scoring function.
 
-    This class allows for feature selection from a dataset by evaluating features using a scoring function and retaining those that meet a specified percentile threshold.
+    Keeps at most floor(n_features * percentile / 100) highest-scoring features.
+    NaN scores are excluded, even at 100 percent. Ties retain the earliest
+    features in their original order; infinite scores remain eligible.
 
     Args:
         percentile (float): The percentile for selecting features, must be an integer between 0 and 100.
@@ -72,12 +74,14 @@ class SelectPercentile(Transformer):
             - A Dataset object with the selected features
         """
         
-        threshold= np.percentile(self.F,100-self.percentile)
-        mask = self.F > threshold
-        ties = np.where(self.F == threshold)[0]
-        if len(ties) != 0:
-            max_features = int (len(self.F)*self.percentile/100)
-            mask[ties[: max_features -mask.sum()]] = True
+        # NaN scores cannot rank a feature. Infinities remain meaningful scores.
+        # Keep at most floor(n_features * percentile / 100), with stable ties.
+        scores = np.asarray(self.F, dtype=float)
+        eligible = np.flatnonzero(~np.isnan(scores))
+        ranked = eligible[np.argsort(-scores[eligible], kind='stable')]
+        max_features = int(len(scores) * self.percentile / 100)
+        mask = np.zeros(len(scores), dtype=bool)
+        mask[ranked[:max_features]] = True
 
         features = np.array(dataset.features)[mask]
         

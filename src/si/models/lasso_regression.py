@@ -49,6 +49,7 @@ class LassoRegression(Model):
         self : LassoRegression
             The fitted Lasso Regression model.
         """
+        self.cost_history = {}
         X = dataset.X
         if self.scale:
             self.mean = np.nanmean(X, axis=0)
