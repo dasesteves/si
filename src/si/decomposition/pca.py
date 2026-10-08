@@ -16,9 +16,9 @@ class PCA(Transformer):
     mean : np.ndarray
         Mean of the training data
     components : np.ndarray
-        Principal components (eigenvectors)
+        Principal components (eigenvectors), with shape (n_components, n_features)
     explained_variance : np.ndarray
-        Amount of variance explained by each principal component
+        Fraction of total variance explained by each retained component
     """
     
     def __init__(self, n_components: int):
@@ -46,17 +46,19 @@ class PCA(Transformer):
         self : PCA
             Fitted PCA instance
         """
-        if self.n_components == 0 or self.n_components> dataset.shape()[1]:
+        if (not isinstance(self.n_components, (int, np.integer))
+                or isinstance(self.n_components, (bool, np.bool_))
+                or self.n_components <= 0 or self.n_components > dataset.shape()[1]):
             raise ValueError("n_components must be a positive integer less than or equal to the number of features.")
 
         # centering the data
         self.mean = dataset.get_mean()
-        dataset.X = dataset.X - self.mean
+        X_centered = dataset.X - self.mean
 
 
         # computing the covariance matrix of the centered data and eigenvalue decomposition on the covariance matrix
         # rowvar = False ensures that the columns of the dataset are intrepreted as variables
-        self.covariance = np.cov(dataset.X, rowvar= False)
+        self.covariance = np.atleast_2d(np.cov(X_centered, rowvar=False))
         self.e_values, self.e_vectores = np.linalg.eig(self.covariance)
         # garantees real eigenvalues since numerical approximations or rounding errors can lead to complex eigenvalues on a real valued covariance matrix
         self.e_values = np.real(self.e_values)
@@ -94,9 +96,6 @@ class PCA(Transformer):
         # 2. Project data onto principal components
         X_reduced = np.dot(X_centered, self.components.T)
         
-        # reducing the dataset to the principal components
-        X_reduced = np.dot(X_centered, self.components.T)
-
         return Dataset(X_reduced, y= dataset.y, features=[f"PC{i+1}" for i in range(self.n_components)], label= dataset.label)
     
     def get_covariance(self)-> np.ndarray:

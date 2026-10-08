@@ -40,6 +40,8 @@ class NeuralNetwork(Model):
         **kwargs
             Additional keyword arguments passed to the optimizer.
         """
+        super().__init__()
+
         # arguments
         self.epochs = epochs
         self.batch_size = batch_size
@@ -92,12 +94,18 @@ class NeuralNetwork(Model):
         Iterator[Tuple[numpy.ndarray, numpy.ndarray]]
             The mini-batches.
         """
+        if (isinstance(self.batch_size, (bool, np.bool_))
+                or not isinstance(self.batch_size, (int, np.integer))
+                or self.batch_size <= 0):
+            raise ValueError("batch_size must be a positive integer")
         n_samples = X.shape[0]
+        if n_samples == 0:
+            raise ValueError("Training data must contain at least one sample")
         indices = np.arange(n_samples)
-        assert self.batch_size <= n_samples, "Batch size cannot be greater than the number of samples"
         if shuffle:
             np.random.shuffle(indices)
-        for start in range(0, n_samples - self.batch_size + 1, self.batch_size):
+        # Keep the final partial batch, including datasets smaller than batch_size.
+        for start in range(0, n_samples, self.batch_size):
             if y is not None:
                 yield X[indices[start:start + self.batch_size]], y[indices[start:start + self.batch_size]]
             else:

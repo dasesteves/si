@@ -74,10 +74,12 @@ class LogisticRegression(Model):
         self: LogisticRegression
             The fitted model
         """
+        self.cost_history = {}
         if self.scale:
             # compute mean and std
             self.mean = np.nanmean(dataset.X, axis=0)
             self.std = np.nanstd(dataset.X, axis=0)
+            self.std = np.where(self.std == 0, 1., self.std)
             # scale the dataset
             X = (dataset.X - self.mean) / self.std
         else:
@@ -156,9 +158,10 @@ class LogisticRegression(Model):
         cost: float
             The cost function of the model
         """
-        predictions = sigmoid_function(np.dot(dataset.X, self.theta) + self.theta_zero)
-        cost = (dataset.y * np.log(predictions)) + (1 - dataset.y) * np.log(1 - predictions)
-        cost = np.sum(cost) * (-1 / dataset.shape()[0])
+        X = (dataset.X - self.mean) / self.std if self.scale else dataset.X
+        logits = np.dot(X, self.theta) + self.theta_zero
+        # Evaluate binary cross-entropy in logit space to avoid log(0).
+        cost = np.mean(np.logaddexp(0, logits) - dataset.y * logits)
         cost = cost + (self.l2_penalty * np.sum(self.theta ** 2) / (2 * dataset.shape()[0]))
         return cost
     

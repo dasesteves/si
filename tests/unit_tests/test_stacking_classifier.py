@@ -1,53 +1,27 @@
 from unittest import TestCase
-
-from datasets import DATASETS_PATH
-
-import os
-
+import numpy as np
 from si.ensemble.stacking_classifier import StackingClassifier
-from si.io.data_file import read_data_file
-from si.metrics.accuracy import accuracy
-from si.model_selection.split import train_test_split
 from si.models.decision_tree_classifier import DecisionTreeClassifier
 from si.models.knn_classifier import KNNClassifier
-from si.models.logistic_regression import LogisticRegression
+from synthetic_classification import training_data, evaluation_data, logistic_model
+
 
 class TestStackingClassifier(TestCase):
-
     def setUp(self):
-        self.csv_file = os.path.join(DATASETS_PATH, 'breast_bin', 'breast-bin.csv')
-
-        self.dataset = read_data_file(filename=self.csv_file, label=True, sep=",")
-
-        self.train_dataset, self.test_dataset = train_test_split(self.dataset)
-
-        decision_tree = DecisionTreeClassifier()
-        knn = KNNClassifier()
-        logistic_regression = LogisticRegression()
-        final_model = KNNClassifier()
-
-        self.stacking = StackingClassifier(models=[decision_tree, knn, logistic_regression], final_model=final_model)
+        self.train_dataset, self.test_dataset = training_data(), evaluation_data()
+        self.stacking = StackingClassifier([DecisionTreeClassifier(), KNNClassifier(k=3), logistic_model()],
+                                           final_model=KNNClassifier(k=3))
 
     def test_fit(self):
-
         self.stacking.fit(self.train_dataset)
-
-        self.assertEqual(self.stacking.predictions_dataset.X.shape[0], self.train_dataset.X.shape[0])
-        self.assertEqual(self.stacking.predictions_dataset.X.shape[1], len(self.stacking.models))
-
+        self.assertTrue(self.stacking.is_fitted())
+        self.assertEqual(self.stacking.new_dataset.shape(), (12, 3))
+        np.testing.assert_array_equal(self.stacking.new_dataset.y, [0, 0, 1, 1] * 3)
+        self.assertTrue(self.stacking.final_model.is_fitted())
 
     def test_predict(self):
         self.stacking.fit(self.train_dataset)
-        
-        predictions = self.stacking.predict(self.test_dataset)
+        np.testing.assert_array_equal(self.stacking.predict(self.test_dataset), [0, 1, 0, 1])
 
-        self.assertEqual(predictions.shape[0], self.test_dataset.X.shape[0])
-    
     def test_score(self):
-        self.stacking.fit(self.train_dataset)
-        
-        accuracy_ = self.stacking.score(self.test_dataset)
-        
-        expected_accuracy = accuracy(self.test_dataset.y, self.stacking.predict(self.test_dataset))
-
-        self.assertEqual(round(accuracy_, 2), round(expected_accuracy, 2))
+        self.assertEqual(self.stacking.fit(self.train_dataset).score(self.test_dataset), 1.)

@@ -23,7 +23,8 @@ def read_data_file(filename: str,
     Dataset
         The dataset object
     """
-    raw_data = np.genfromtxt(filename, delimiter=sep)
+    # Preserve the sample and feature axes for one-row/one-column files.
+    raw_data = np.genfromtxt(filename, delimiter=sep, ndmin=2)
 
     if label:
         X = raw_data[:, :-1]

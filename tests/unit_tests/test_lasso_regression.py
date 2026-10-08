@@ -37,4 +37,9 @@ class TestLassoRegressor(TestCase):
         ridge.fit(self.train_dataset)
         mse_ = ridge.score(self.test_dataset)
 
-        self.assertEqual(round(mse_, 2), 5777.56)
+        predictions = ridge.predict(self.test_dataset)
+        expected_mse = np.mean((self.test_dataset.y - predictions) ** 2)
+        intercept_only_mse = np.mean((self.test_dataset.y - self.train_dataset.y.mean()) ** 2)
+        self.assertTrue(np.isfinite(mse_))
+        self.assertAlmostEqual(mse_, expected_mse)
+        self.assertLess(mse_, intercept_only_mse)

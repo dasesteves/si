@@ -17,13 +17,16 @@ class TestPCA(TestCase):
         pca.fit(self.dataset)
         
         # Check if components were correctly created
-        self.assertEqual(pca.components.shape[1], n_components)
-        self.assertEqual(pca.components.shape[0], self.dataset.X.shape[1])
+        self.assertEqual(pca.components.shape, (n_components, self.dataset.X.shape[1]))
         
         # Check if explained variance was calculated
         self.assertEqual(len(pca.explained_variance), n_components)
         self.assertTrue(np.all(pca.explained_variance >= 0))
-        self.assertTrue(np.allclose(np.sum(pca.explained_variance), 1))
+        projected = pca.transform(self.dataset)
+        total_variance = np.var(self.dataset.X, axis=0, ddof=1).sum()
+        expected = np.var(projected.X, axis=0, ddof=1) / total_variance
+        np.testing.assert_allclose(pca.explained_variance, expected)
+        self.assertLess(np.sum(pca.explained_variance), 1)
 
     def test_transform(self):
         n_components = 2

@@ -34,7 +34,7 @@ class Model(Estimator, ABC):
         predictions: np.ndarray
             The predicted target values.
         """
-        if not self.is_fitted:
+        if not self._is_fitted:
             raise ValueError('Model needs to be fitted before calling predict()')
         return self._predict(dataset)
 

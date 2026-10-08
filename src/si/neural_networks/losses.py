@@ -184,6 +184,6 @@ class CategoricalCrossEntropy(LossFunction):
         # Clip predictions to avoid division by 0
         y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
         
-        gradient = -y_true / y_pred
+        gradient = -y_true / (y_pred * y_true.shape[0])
         
         return gradient

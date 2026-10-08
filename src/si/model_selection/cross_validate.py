@@ -19,17 +19,25 @@ def k_fold_cross_validation(model, dataset: Dataset, scoring: callable = None, c
     scoring: Callable
         The scoring function to use. If None, the model's score method will be used.
     cv: int
-        The number of cross-validation folds.
+        The number of cross-validation folds, between 2 and the sample count.
     seed: int
         The seed to use for the random number generator.
 
     Returns
     -------
     scores: List[float]
-        The scores of the model on each fold.
+        The scores of the model on each fold. Every sample is tested once;
+        fold sizes differ by at most one sample.
+
+    Raises
+    ------
+    ValueError
+        If cv is not an integer in the valid range.
     """
     num_samples = dataset.X.shape[0]
-    fold_size = num_samples // cv
+    if (not isinstance(cv, (int, np.integer)) or isinstance(cv, (bool, np.bool_))
+            or not 2 <= cv <= num_samples):
+        raise ValueError("cv must be an integer between 2 and the number of samples.")
     scores = []
 
     # Create an array of indices to shuffle the data
@@ -38,17 +46,15 @@ def k_fold_cross_validation(model, dataset: Dataset, scoring: callable = None, c
     indices = np.arange(num_samples)
     np.random.shuffle(indices)
 
-    for fold in range(cv):
-        # Determine the indices for the current fold
-        start = fold * fold_size
-        end = (fold + 1) * fold_size
-
+    folds = np.array_split(indices, cv)
+    for fold, test_indices in enumerate(folds):
         # Split the data into training and testing sets
-        test_indices = indices[start:end]
-        train_indices = np.concatenate((indices[:start], indices[end:]))
+        train_indices = np.concatenate(folds[:fold] + folds[fold + 1:])
 
-        dataset_train = Dataset(dataset.X[train_indices], dataset.y[train_indices])
-        dataset_test = Dataset(dataset.X[test_indices], dataset.y[test_indices])
+        dataset_train = Dataset(dataset.X[train_indices], dataset.y[train_indices],
+                                features=dataset.features, label=dataset.label)
+        dataset_test = Dataset(dataset.X[test_indices], dataset.y[test_indices],
+                               features=dataset.features, label=dataset.label)
 
         # Fit the model on the training set and score it on the test set
         model.fit(dataset_train)
