@@ -194,7 +194,7 @@ class TanhActivation(ActivationLayer):
         numpy.ndarray
             The output of the layer.
         """
-        return (np.exp(input) - np.exp(-input)) / (np.exp(input) + np.exp(-input))
+        return np.tanh(input)
     
     def derivative(self, input: np.ndarray):
         """
