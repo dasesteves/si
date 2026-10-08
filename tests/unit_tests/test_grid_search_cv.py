@@ -1,47 +1,21 @@
 from unittest import TestCase
-
-from datasets import DATASETS_PATH
-
-import os
-
-from si.io.data_file import read_data_file
-from si.metrics.accuracy import accuracy
-from si.model_selection.grid_search_cv import grid_search_cv
-from si.models.logistic_regression import LogisticRegression
-
 import numpy as np
+from si.model_selection.grid_search_cv import grid_search_cv
+from synthetic_classification import training_data, logistic_model
+
 
 class TestGridSearchCV(TestCase):
-
-    def setUp(self):
-        self.csv_file = os.path.join(DATASETS_PATH, 'breast_bin', 'breast-bin.csv')
-
-        self.dataset = read_data_file(filename=self.csv_file, label=True, sep=",")
-
     def test_grid_search_k_fold_cross_validation(self):
-
-        model = LogisticRegression()
-
-        # parameter grid
-        parameter_grid_ = {
-            'l2_penalty': (1, 10),
-            'alpha': (0.001, 0.0001),
-            'max_iter': (1000, 2000)
-        }
-
-        # cross validate the model
-        results_ = grid_search_cv(model,
-                                self.dataset,
-                                hyperparameter_grid=parameter_grid_,
-                                cv=3)
-
-        # print the results
-        self.assertEqual(len(results_["scores"]), 8)
-
-        # get the best hyperparameters
-        best_hyperparameters = results_['best_hyperparameters']
-        self.assertEqual(len(best_hyperparameters), 3)
-
-        # get the best score
-        best_score = results_['best_score']
-        self.assertEqual(np.round(best_score, 2), 0.97)
+        self.addCleanup(np.random.set_state, np.random.get_state())
+        np.random.seed(0)
+        grid = {'l2_penalty': (.1, .5), 'alpha': (.05, .1), 'max_iter': (100, 200)}
+        results = grid_search_cv(logistic_model(), training_data(), hyperparameter_grid=grid, cv=3)
+        self.assertEqual(len(results['scores']), 8)
+        combinations = {tuple(sorted(params.items())) for params in results['hyperparameters']}
+        self.assertEqual(len(combinations), 8)
+        self.assertEqual(results['best_score'], 1.)
+        self.assertIn(results['best_hyperparameters'], results['hyperparameters'])
+        for params in results['hyperparameters']:
+            self.assertEqual(set(params), set(grid))
+            for name, value in params.items():
+                self.assertIn(value, grid[name])

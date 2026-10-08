@@ -1,43 +1,21 @@
 from unittest import TestCase
-
-from datasets import DATASETS_PATH
-
-import os
-
-from si.io.data_file import read_data_file
-from si.model_selection.split import train_test_split
+import numpy as np
 from si.models.decision_tree_classifier import DecisionTreeClassifier
+from synthetic_classification import training_data, evaluation_data
+
 
 class TestDecisionTree(TestCase):
-
     def setUp(self):
-        self.csv_file = os.path.join(DATASETS_PATH, 'breast_bin', 'breast-bin.csv')
-
-        self.dataset = read_data_file(filename=self.csv_file, label=True, sep=",")
-
-        self.train_dataset, self.test_dataset = train_test_split(self.dataset)
+        self.train_dataset, self.test_dataset = training_data(), evaluation_data()
 
     def test_fit(self):
-
-        decision_tree = DecisionTreeClassifier()
-        decision_tree.fit(self.train_dataset)
-
-        self.assertEqual(decision_tree.min_sample_split, 2)
-        self.assertEqual(decision_tree.max_depth, 10)
-
+        model = DecisionTreeClassifier().fit(self.train_dataset)
+        self.assertTrue(model.is_fitted())
+        np.testing.assert_array_equal(model.predict(self.train_dataset), self.train_dataset.y)
 
     def test_predict(self):
-        decision_tree = DecisionTreeClassifier()
-        decision_tree.fit(self.train_dataset)
+        model = DecisionTreeClassifier().fit(self.train_dataset)
+        np.testing.assert_array_equal(model.predict(self.test_dataset), [0, 1, 0, 1])
 
-        predictions = decision_tree.predict(self.test_dataset)
-        print(predictions)
-
-        self.assertEqual(predictions.shape[0], self.test_dataset.shape()[0])
-    
     def test_score(self):
-        decision_tree = DecisionTreeClassifier()
-        decision_tree.fit(self.train_dataset)
-        accuracy_ = decision_tree.score(self.test_dataset)
-
-        self.assertEqual(round(accuracy_, 2), 0.92)
+        self.assertEqual(DecisionTreeClassifier().fit(self.train_dataset).score(self.test_dataset), 1.)
