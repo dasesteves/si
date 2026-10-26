@@ -15,7 +15,7 @@ python -m pip install -r requirements.txt
 python -m pip install -e .
 ```
 
-O exemplo abaixo foi verificado em **Python 3.12**, com dependências já disponíveis. Embora `setup.py` ainda declare Python ≥ 3.7, o código usa sintaxe que requer **Python 3.10 ou posterior**. A compatibilidade com todas essas versões e uma instalação de raiz não foram verificadas. As versões das dependências não estão fixadas.
+O exemplo abaixo foi verificado em **Python 3.12**, com dependências já disponíveis. O pacote declara **Python 3.10 ou posterior**, de acordo com as anotações de tipos e as uniões de tipos usadas em execução. A compatibilidade com todas essas versões e uma instalação de raiz não foram verificadas. As versões das dependências não estão fixadas.
 
 ### Classificar duas amostras
 
